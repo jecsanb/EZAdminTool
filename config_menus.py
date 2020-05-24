@@ -3,74 +3,107 @@ import os
 import platform
 import subprocess
 
+from consolemenu import PromptUtils, ConsoleMenu
 from consolemenu.items import FunctionItem
 
-from menu_helper import build_submenu, add_menu_options
-
-DEFAULT_CONFIG_PATH = './'
-CONFIG_FILE_NAME = 'ezadmin.config.txt'
-CONFIG_PATH = DEFAULT_CONFIG_PATH + CONFIG_FILE_NAME
-
+APP_NAME = 'EZAdminTool'
+CONFIG_FILE_NAME = f'{APP_NAME}.config.txt'
+DEFAULT_CONFIG_PATH = './' + CONFIG_FILE_NAME
 DEFAULT_TEXT_EDITORS = {'Linux': 'gedit', 'Windows': 'notepad.exe'}
 
-DEFAULT_CONFIG = \
-    '''
-    [ezadmin]
-    # Set to True once updated with correct settings.
-    configured : False
-    
-    [Server]
-    # Server accepts IP Address or FQDN assuming DNS can resolve and default to default LDAP port.
-    host_name : sample_server
-    port : 389
-    
-    [LDAP_SEARCH_PATHS]
-    # The organization units where to search for users and groups.
-    0 : OU=Users,DC=sample,DC=com
-    1 : OU=Other,DC=sample,DC=com
-    2 : OU=Other2,DC=sample,DC=com
-    
-    [Authentication]
-    # Used to authenticate to the directory server
-    authentication_domain : sample.com
-    username : sample
-    password : password
-    '''
+DEFAULT_CONFIG_STRING = \
+"""
+# Configuration file for EZAdmin tool.
+[ezadmin]
+# Set to True once updated with correct settings.
+configured : False
+config_path : ./EZAdminTool.config.txt
+
+[Server]
+# Server accepts IP Address or FQDN assuming DNS can resolve and default to default LDAP port.
+host_name : sample_server
+port : 389
+
+[LDAP_SEARCH_PATHS]
+# The organization units where to search for users and groups.
+0 : OU=Users,DC=sample,DC=com
+1 : OU=Other,DC=sample,DC=com
+2 : OU=Other2,DC=sample,DC=com
+
+[Authentication]
+# Used to authenticate to the directory server
+authentication_domain : sample.com
+username : sample
+password : password"""
 
 
-def create_default_config():
-    config = configparser.ConfigParser(delimiters=':')
-    config.read_string(DEFAULT_CONFIG)
-    with open(CONFIG_PATH, 'w') as configfile:
-        config.write(configfile)
-    print("Configuration file created, please configure: ", CONFIG_PATH)
+class ConfigurationManagement:
+    def __init__(self):
+        self.menu = self.__build_menu()
+        self.console = PromptUtils(self.menu.screen)
 
+        self.active_configs = configparser.ConfigParser(delimiters=':')
+        self.active_configs.read(DEFAULT_CONFIG_PATH)
 
-def view_or_edit_configuration():
-    if not os.path.exists(CONFIG_PATH):
-        create_default_config()
-    open_file_with_editor_and_wait(os.path.normpath(CONFIG_PATH), DEFAULT_TEXT_EDITORS[platform.system()])
+        if len(self.active_configs.sections()) == 0:
+            self.__save_default_configs()
+            self.refresh_active_configurations()
 
+        self.default_editor = DEFAULT_TEXT_EDITORS[platform.system()]
 
+        if not self.configured():
+            self.ask_to_configure()
 
+    def __build_menu(self):
+        menu_title = "Configuration"
+        menu_options = [FunctionItem("View / Edit Configuration", self.view_or_edit_configuration),
+                        FunctionItem("Test Configurations", self.test_configuration)]
+        menu = ConsoleMenu(menu_title)
+        for option in menu_options:
+            menu.append_item(option)
+        return menu
 
-def configurations_submenu(parent):
-    menu = build_submenu("Configurations", parent)
-    menu_options = [FunctionItem("View / Edit Configuration", view_or_edit_configuration, menu=menu)]
-    add_menu_options(menu.submenu, menu_options)
-    return menu
+    def configured(self):
+        return self.active_configs['ezadmin'].getboolean('configured')
 
+    def ask_to_configure(self):
+        configure = self.console.prompt_for_yes_or_no(
+            "Settings dont appear to be configured, do you want to configure them now?")
+        if configure:
+            self.view_or_edit_configuration()
+        else:
+            self.console.println("Application will not work properly without configuration.")
+            self.console.enter_to_continue()
 
-def open_file_with_editor_and_wait(file_path, editor):
-    print("Opening ", file_path)
-    # Check on security concerns for doing this.
-    pr = subprocess.Popen(f'{editor} {file_path}')
-    print("Close file to continue...")
-    pr.communicate()
+    def __save_default_configs(self):
+        with open(DEFAULT_CONFIG_PATH, 'w') as configfile:
+            configfile.write(DEFAULT_CONFIG_STRING)
+
+    def view_or_edit_configuration(self):
+        if not os.path.exists(DEFAULT_CONFIG_PATH):
+            # configuration file does not exist, default configs created
+            self.__save_default_configs()
+        self.open_config_file_with_editor_and_wait()
+        self.refresh_active_configurations()
+
+    def refresh_active_configurations(self):
+        self.active_configs = configparser.ConfigParser(delimiters=':')
+        self.active_configs.read(DEFAULT_CONFIG_PATH)
+
+    def open_config_file_with_editor_and_wait(self):
+        # Check on security concerns for doing this.
+        pr = subprocess.Popen(f'{self.default_editor} {os.path.normpath(DEFAULT_CONFIG_PATH)}')
+        self.console.println("Close configurations to continue...")
+        pr.communicate()
+
+    def test_configuration(self):
+        self.console.println("Testing configuration ...")
+        self.console.enter_to_continue()
 
 
 def main():
-    view_or_edit_configuration()
+    config_man = ConfigurationManagement()
+    config_man.menu.show()
 
 
 if __name__ == '__main__':

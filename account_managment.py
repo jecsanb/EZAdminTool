@@ -2,54 +2,52 @@ from consolemenu.console_menu import ConsoleMenu
 from consolemenu.items import FunctionItem
 from consolemenu.prompt_utils import PromptUtils
 
-from menu_helper import add_menu_options, build_menu
 
+class AccountManagement:
 
-def ask_for_account_username(screen):
-    return prompt_for_input(screen, "Enter Account Username")
+    def __init__(self):
+        self.menu = self.__build_menu()
+        self.prompt_utils = PromptUtils(self.menu.screen)
 
+    def __build_menu(self):
+        menu_title = "Account Management"
+        menu_options = [FunctionItem("Create Account", self.create_account_option),
+                        FunctionItem("Modify Account", self.modify_account_option),
+                        FunctionItem("Delete Account", self.delete_account_option)]
+        menu = ConsoleMenu(menu_title)
+        for option in menu_options:
+            menu.append_item(option)
+        return menu
 
-def print_to_screen(screen, prompt):
-    pu = PromptUtils(screen)
-    pu.println(prompt)
-    pu.enter_to_continue()
+    def print_placeholder(self):
+        self.print_to_console("Did the thing!")
 
+    def create_account_option(self):
+        username = self.prompt_for_account_username()
+        self.print_placeholder()
 
-def create_account(screen):
-    account = ask_for_account_username(screen)
-    print_to_screen(screen, f"Account {account} Deleted, (jk not this is not implemented")
+    def modify_account_option(self):
+        username = self.prompt_for_account_username()
+        self.print_placeholder()
 
+    def delete_account_option(self):
+        username = self.prompt_for_account_username()
+        self.print_placeholder()
 
-def modify_account(screen):
-    account = ask_for_account_username(screen)
-    print_to_screen(screen, f"Account {account} Deleted, (jk not this is not implemented")
+    def prompt_on_console(self, prompt):
+        self.prompt_utils.input(prompt)
 
+    def print_to_console(self, message):
+        self.prompt_utils.println(message)
+        self.prompt_utils.enter_to_continue()
 
-def delete_account(screen):
-    account = ask_for_account_username(screen)
-    print_to_screen(screen, f"Account {account} Deleted, (jk not this is not implemented")
-
-
-def prompt_for_input(screen, prompt):
-    pu = PromptUtils(screen)
-    return pu.input(prompt=prompt, quit_message="Enter q to cancel").input_string
-
-
-def account_management_submenu(parent):
-    title = "Account Management"
-    menu_options = [FunctionItem("Create Account", create_account, args=[parent.screen]),
-                    FunctionItem("Modify Account", modify_account, args=[parent.screen]),
-                    FunctionItem("Delete Account", delete_account, args=[parent.screen])]
-    menu = build_menu(title, parent)
-    add_menu_options(menu.submenu, menu_options)
-    return menu
+    def prompt_for_account_username(self):
+        return self.prompt_on_console("Enter Account Username")
 
 
 def main():
-    menu = ConsoleMenu()
-    sub_menu = account_management_submenu(menu)
-    add_menu_options(menu, [sub_menu])
-    menu.show()
+    am = AccountManagement()
+    am.menu.show()
 
 
 if __name__ == '__main__':

@@ -1,7 +1,6 @@
 from consolemenu import ConsoleMenu, SelectionMenu
 from consolemenu.items import *
 
-
 def build_submenu(title, parent):
     return build_menu(title, parent)
 

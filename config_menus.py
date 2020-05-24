@@ -52,6 +52,8 @@ def view_or_edit_configuration():
     open_file_with_editor_and_wait(os.path.normpath(CONFIG_PATH), DEFAULT_TEXT_EDITORS[platform.system()])
 
 
+
+
 def configurations_submenu(parent):
     menu = build_submenu("Configurations", parent)
     menu_options = [FunctionItem("View / Edit Configuration", view_or_edit_configuration, menu=menu)]
@@ -59,7 +61,7 @@ def configurations_submenu(parent):
     return menu
 
 
-def open_file_with_editor_and_wait(file_path,editor):
+def open_file_with_editor_and_wait(file_path, editor):
     print("Opening ", file_path)
     # Check on security concerns for doing this.
     pr = subprocess.Popen(f'{editor} {file_path}')

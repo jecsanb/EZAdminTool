@@ -1,8 +1,8 @@
 from consolemenu import *
 
-from account_managment import account_management_submenu
-from config_menus import configurations_submenu
-from menu_helper import add_menu_options
+from ezadmintool.account_managment import account_management_submenu
+from ezadmintool.config_menus import configurations_submenu
+from ezadmintool.menu_helper import add_menu_options
 
 CONSOLE_SCREEN = Screen()
 

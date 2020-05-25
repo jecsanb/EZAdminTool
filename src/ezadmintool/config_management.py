@@ -10,7 +10,8 @@ from .default_configurations import *
 
 
 class ConfigurationManagement:
-    def __init__(self):
+    def __init__(self, config_path=None):
+        self.config_path = DEFAULT_CONFIG_PATH if config_path is None else config_path
         self.menu = self.__build_menu()
         self.console = PromptUtils(self.menu.screen)
 

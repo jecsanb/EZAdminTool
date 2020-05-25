@@ -6,35 +6,7 @@ import subprocess
 from consolemenu import PromptUtils, ConsoleMenu
 from consolemenu.items import FunctionItem
 
-APP_NAME = 'EZAdminTool'
-CONFIG_FILE_NAME = f'{APP_NAME}.config.txt'
-DEFAULT_CONFIG_PATH = './' + CONFIG_FILE_NAME
-DEFAULT_TEXT_EDITORS = {'Linux': 'gedit', 'Windows': 'notepad.exe'}
-
-DEFAULT_CONFIG_STRING = \
-"""
-# Configuration file for EZAdmin tool.
-[ezadmin]
-# Set to True once updated with correct settings.
-configured : False
-config_path : ./EZAdminTool.config.txt
-
-[Server]
-# Server accepts IP Address or FQDN assuming DNS can resolve and default to default LDAP port.
-host_name : sample_server
-port : 389
-
-[LDAP_SEARCH_PATHS]
-# The organization units where to search for users and groups.
-0 : OU=Users,DC=sample,DC=com
-1 : OU=Other,DC=sample,DC=com
-2 : OU=Other2,DC=sample,DC=com
-
-[Authentication]
-# Used to authenticate to the directory server
-authentication_domain : sample.com
-username : sample
-password : password"""
+from .default_configurations import *
 
 
 class ConfigurationManagement:
@@ -64,7 +36,7 @@ class ConfigurationManagement:
         return menu
 
     def configured(self):
-        return self.active_configs['ezadmin'].getboolean('configured')
+        return self.active_configs['EZADMIN'].getboolean('CONFIGURED')
 
     def ask_to_configure(self):
         configure = self.console.prompt_for_yes_or_no(
@@ -78,6 +50,7 @@ class ConfigurationManagement:
     def __save_default_configs(self):
         with open(DEFAULT_CONFIG_PATH, 'w') as configfile:
             configfile.write(DEFAULT_CONFIG_STRING)
+        self.refresh_active_configurations()
 
     def view_or_edit_configuration(self):
         if not os.path.exists(DEFAULT_CONFIG_PATH):
